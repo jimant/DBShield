@@ -1,0 +1,275 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<!-- ForumDAOImpl 에서 호출할때 사용 -->
+<sqlMap namespace="Forum">
+
+	<!-- 참조변수와 클래스경로 -->
+	
+	<typeAlias alias="forumVO" type="kr.co.jimant.home.forum.ForumVO" />
+	
+	<select id="selectForumListCount" parameterClass="forumVO" resultClass="int">
+        SELECT count(*) cnt
+          FROM FORUM
+        WHERE  DELETE_DATE is null AND RE_LEV = 0 AND FORUM_THEME_ID = #forum_theme_id#   
+    </select>
+
+	<!-- FORUM 리스트 SQL -->
+	   <select id="selectForumList" parameterClass="forumVO" resultClass="forumVO">
+	       
+<!-- 	  SELECT i.FORUM_ID, -->
+<!-- 	  		 i.MEMBER_ID, -->
+<!--              i.FORUM_TITLE, -->
+<!--              i.FORUM_CONTENT, -->
+<!--              i.FORUM_THEME_ID, -->
+<!--              DATE_FORMAT(i.CREATE_DATE, "%Y-%c-%e %r") as CREATE_DATE, -->
+<!--              m.NAME -->
+<!--         FROM FORUM i -->
+<!--        INNER JOIN MEMBER m -->
+<!-- 	      ON i.MEMBER_ID = m.MEMBER_ID   -->
+<!-- 	  WHERE  i.DELETE_DATE is null AND i.RE_LEV = 0 AND i.FORUM_THEME_ID = #forum_theme_id#    -->
+<!--     ORDER BY i.FORUM_ID DESC -->
+<!--   	   LIMIT #startrow#, #endrow# -->
+  	   
+  	   SELECT   @ROWNUM := @ROWNUM + 1 ROWNUM,
+       		 i.FORUM_ID,
+             i.FORUM_TITLE,
+             i.FORUM_CONTENT,
+             i.FORUM_THEME_ID,
+             i.MEMBER_ID,
+             DATE_FORMAT(i.CREATE_DATE, "%Y-%c-%e %r") as CREATE_DATE,
+             m.NAME
+	    FROM FORUM i 
+       INNER JOIN MEMBER m
+	      ON i.MEMBER_ID = m.MEMBER_ID  ,
+       		 (SELECT @ROWNUM := 0) r
+	   WHERE i.DELETE_DATE is null AND i.RE_LEV = 0 AND i.FORUM_THEME_ID = #forum_theme_id# 
+    ORDER BY ROWNUM DESC
+  	   LIMIT #startrow#, #endrow#
+  		
+    </select>
+	
+	<select id="getLastReplyDate" parameterClass="Long" resultClass="String">
+        select DATE_FORMAT(CREATE_DATE, "%Y%m%d%H%i%s") as LAST_REPLY_DATE
+        FROM FORUM 
+        where RE_REF = #forum_id# AND RE_LEV > 0 order by FORUM_ID desc limit 1
+         
+        
+    </select>
+	
+	<!-- FORUM 등록 SQL -->
+	<insert id="insertForum" parameterClass="forumVO">
+	   
+	    INSERT 
+	      INTO FORUM(MEMBER_ID,
+               FORUM_TITLE,
+               FORUM_THEME_ID,
+               FORUM_CONTENT,
+               CREATE_DATE)
+		VALUES (#member_id#,
+        	   #forum_title#,
+        	   #forum_theme_id#,
+        	   #forum_content#,
+        	   now())
+	   
+	   
+	</insert>
+	
+	<select id="selectLastForum" resultClass="Long">
+        SELECT  
+            max(FORUM_ID)
+        FROM
+            FORUM
+
+    </select>
+    
+     <update id="updateRe" parameterClass="forumVO">
+       
+ 	  	 UPDATE FORUM
+       		SET	 RE_LEV=#re_lev#,
+             	 RE_REF=#re_ref#,
+             	 RE_SEQ=#re_seq#
+		  WHERE FORUM_ID  = #forum_id#
+
+	</update>
+	
+	<select id="getSeqList" resultClass="forumVO">
+	       
+	  SELECT RE_SEQ,
+	  		 RE_LEV
+        FROM FORUM
+	   WHERE RE_REF=#re_ref# AND RE_SEQ > #re_seq#
+	ORDER BY RE_SEQ ASC
+    </select>
+    
+    <select id="maxSeq" parameterClass="Long" resultClass="int">
+        SELECT  
+            max(RE_SEQ)
+        FROM
+            FORUM
+	  where RE_REF=#re_ref#
+    </select>
+	
+	<!-- select FORUM SQL -->
+	<select id="selectForum" parameterClass="forumVO" resultClass="forumVO">
+	     
+	    SELECT  i.FORUM_ID,
+	    		i.FORUM_THEME_ID,
+       		    i.MEMBER_ID,
+                i.FORUM_TITLE,
+                i.FORUM_CONTENT,
+                DATE_FORMAT(i.CREATE_DATE, "%Y-%c-%e %r") as CREATE_DATE,
+                i.RE_LEV,
+             	i.RE_REF,
+             	i.RE_SEQ,
+                m.NAME
+           FROM FORUM i
+            	INNER JOIN MEMBER m
+	      	 ON i.MEMBER_ID = m.MEMBER_ID  
+          WHERE i.FORUM_ID=#forum_id#
+	    
+	</select>
+
+	<!-- FORUM 수정 SQL -->
+	<update id="updateForum" parameterClass="forumVO">
+       
+ 	  	 UPDATE FORUM
+       		SET	FORUM_TITLE = #forum_title#,
+       			FORUM_CONTENT = #forum_content#
+		  WHERE FORUM_ID  = #forum_id#
+
+	</update>
+	
+	<!-- FORUM 삭제 SQL -->
+	<update id="deleteForum" parameterClass="forumVO">
+         
+         UPDATE FORUM
+            SET	DELETE_DATE = now()
+ 		  WHERE FORUM_ID  = #forum_id#
+
+	</update>
+	
+	<update id="updateSeq" parameterClass="forumVO">
+	     UPDATE FORUM 
+	        set RE_SEQ=RE_SEQ+1 
+	      where RE_REF=#re_ref# and RE_SEQ>#re_seq#
+
+	</update>
+	
+	<!-- 답글 등록 SQL -->
+	<insert id="insertReply" parameterClass="forumVO">
+	    
+	  	INSERT 
+	      INTO FORUM(FORUM_THEME_ID,
+	      	   MEMBER_ID,
+               FORUM_TITLE,
+               FORUM_CONTENT,
+               CREATE_DATE,
+               RE_SEQ,
+               RE_LEV,
+               RE_REF)
+		VALUES (#forum_theme_id#,
+			   #member_id#,
+        	   #forum_title#,
+        	   #forum_content#,
+        	   now(),
+        	   #re_seq#,
+        	   #re_lev#,
+        	   #re_ref#)
+		
+	</insert>
+	
+	<select id="forumDetailList" parameterClass="long" resultClass="forumVO">
+	       
+	  SELECT i.FORUM_ID,
+	  		 i.FORUM_THEME_ID,
+             i.FORUM_TITLE,
+             i.FORUM_CONTENT,
+             i.MEMBER_ID,
+             DATE_FORMAT(i.CREATE_DATE, "%Y-%c-%e %r") as CREATE_DATE,
+             i.RE_LEV,
+             i.RE_REF,
+             i.RE_SEQ,
+             m.NAME,
+             m.MEMBER_ID
+        FROM FORUM i
+       INNER JOIN MEMBER m
+	      ON i.MEMBER_ID = m.MEMBER_ID  
+	  WHERE  i.DELETE_DATE is null AND i.RE_REF =#forum_id#
+    ORDER BY i.RE_REF DESC,
+        	 i.RE_SEQ ASC   
+    </select>
+	
+	<insert id="insertForumTheme" parameterClass="forumVO">
+	    
+	  	INSERT 
+	      INTO FORUM_THEME(MEMBER_ID,
+               FORUM_THEME,
+               FORUM_EXPLAIN,
+               CREATE_DATE)
+		VALUES (#member_id#,
+        	   #forum_theme#,
+        	   #forum_explain#,
+        	   now())
+		
+	</insert>
+	
+	<select id="forumThemeList" resultClass="forumVO">
+	       
+	  SELECT i.FORUM_THEME_ID,
+             i.FORUM_THEME,
+             i.FORUM_EXPLAIN,
+             i.MEMBER_ID,
+             DATE_FORMAT(i.CREATE_DATE, "%Y-%c-%e %r") as CREATE_DATE,
+             m.NAME
+        FROM FORUM_THEME i
+       INNER JOIN MEMBER m
+	      ON i.MEMBER_ID = m.MEMBER_ID  
+	   WHERE i.DELETE_DATE is null
+    </select>
+    
+    <select id="getForumList" parameterClass="Long" resultClass="forumVO">
+	       
+<!-- 	  SELECT i.FORUM_THEME_ID, -->
+<!-- 	  		 i.FORUM_ID, -->
+<!--              i.FORUM_TITLE, -->
+<!--              i.FORUM_CONTENT, -->
+<!--              DATE_FORMAT(i.CREATE_DATE, "%Y-%c-%e %r") as CREATE_DATE, -->
+<!--              m.NAME, -->
+<!--              m.MEMBER_ID -->
+<!--         FROM FORUM i -->
+<!--        INNER JOIN MEMBER m -->
+<!-- 	      ON i.MEMBER_ID = m.MEMBER_ID   -->
+<!-- 	  WHERE  i.DELETE_DATE is null AND i.RE_LEV = 0 AND i.FORUM_THEME_ID = #forum_theme_id#      -->
+<!--     ORDER BY i.FORUM_ID DESC -->
+<!--   	   LIMIT 0, 5 -->
+  	   
+  	     SELECT   @ROWNUM := @ROWNUM + 1 ROWNUM,
+       		 i.FORUM_ID,
+             i.FORUM_TITLE,
+             i.FORUM_CONTENT,
+             i.FORUM_THEME_ID,
+             i.MEMBER_ID,
+             DATE_FORMAT(i.CREATE_DATE, "%Y-%c-%e %r") as CREATE_DATE,
+             m.NAME
+	    FROM FORUM i 
+       INNER JOIN MEMBER m
+	      ON i.MEMBER_ID = m.MEMBER_ID  ,
+       		 (SELECT @ROWNUM := 0) r
+	   WHERE i.DELETE_DATE is null AND i.RE_LEV = 0 AND i.FORUM_THEME_ID = #forum_theme_id# 
+    ORDER BY ROWNUM DESC
+  	   LIMIT 0, 5
+    </select>
+    
+     <select id="getTheme" parameterClass="forumVO" resultClass="forumVO">
+	       
+	  SELECT FORUM_THEME_ID,
+	  		 FORUM_THEME,
+	  		 FORUM_EXPLAIN	  		
+        FROM FORUM_THEME
+	  WHERE  FORUM_THEME_ID = #forum_theme_id#     
+    </select>
+	
+</sqlMap>

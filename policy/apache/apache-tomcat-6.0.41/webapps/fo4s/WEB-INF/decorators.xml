@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<decorators defaultdir="/jsp/decorators">
+    <!-- Any urls that are excluded will never be decorated by Sitemesh -->
+<!--     <decorator name="main" page="main_dc.jsp"> -->
+<!--         <pattern>/main.do</pattern> -->
+<!--         <pattern>/login.do</pattern> -->
+<!--     </decorator> -->
+    
+    <decorator name="sub" page="sub_main_dc.jsp">
+        <pattern>*.lo</pattern>
+        <pattern>*.do</pattern>
+    </decorator>
+    
+<!--     <decorator name="pop" page="sub_pop_dc.jsp"> -->
+<!--         <pattern>*.pop</pattern> -->
+<!--     </decorator> -->
+    
+    <!-- Top Menu Decorator -->
+    <decorator name="sub_top" page="sub_top_dc.jsp" />
+    
+    <!-- Foot Decorator -->
+    <decorator name="sub_foot" page="sub_foot_dc.jsp" />
+    
+    <excludes>
+        <pattern>/*_html.do</pattern>
+        <pattern>/*_data.do</pattern>
+        <pattern>/*create.do</pattern>
+        <pattern>/*update.do</pattern>
+        <pattern>/*remove.do</pattern>
+        <pattern>/*index.do</pattern>
+        <pattern>/*logout.do</pattern>
+    </excludes>
+    
+</decorators>

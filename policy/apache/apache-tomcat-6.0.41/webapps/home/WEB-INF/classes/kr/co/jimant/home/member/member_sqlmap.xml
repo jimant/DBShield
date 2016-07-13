@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<!-- MemberDAOImpl 에서 호출할때 사용 -->
+<sqlMap namespace="Member">
+
+	<!-- 참조변수와 클래스경로 -->
+	
+	<typeAlias alias="memberVO" type="kr.co.jimant.home.member.MemberVO" />
+	
+	
+	<!-- select NOTICE SQL -->
+	<select id="login" parameterClass="memberVO" resultClass="memberVO">
+	     
+	     SELECT MEMBER_ID, 
+	     		ADMIN,
+	     		DIVISION,
+	     		CERTIFY_STATUS
+           FROM MEMBER 
+          WHERE MEMBER_ID=#member_id# AND PASSWORD=#password# AND DELETE_DATE is null
+	    
+	</select>
+	
+	<!-- MEMBER 등록 SQL -->
+	<insert id="insertMember" parameterClass="memberVO">
+	   
+	    INSERT 
+	      INTO MEMBER(MEMBER_ID,
+               PASSWORD,
+               NAME,
+               DIVISION,
+               BUSINESS_NUMBER,
+               CORPORATE_NUMBER,
+               COMPANY_NAME,
+               JOB,
+               PHONE_NUMBER,
+               CELLPHONE_NUMBER,
+               EMAIL,
+               ZIP_CODE,
+               ADDRESS,
+               ADDRESS_DETAIL,
+               CERTIFY_STATUS,
+               ADMIN,
+               JOIN_DATE)
+		VALUES (#member_id#,
+               #password#,
+               #name#,
+               #division#,
+               #business_number#,
+               #corporate_number#,
+               #company_name#,
+               #job#,
+               #phone_number#,
+               #cellphone_number#,
+               #email#,
+               #zip_code#,
+               #address#,
+               #address_detail#,
+               #certify_status#,
+               #admin#,
+        	   now())
+	   
+	   
+	</insert>
+	
+	<!-- select NOTICE SQL -->
+	<select id="idCheck" parameterClass="memberVO" resultClass="memberVO">
+	     
+	    SELECT  MEMBER_ID
+           FROM MEMBER 
+          WHERE MEMBER_ID=#member_id#
+	    
+	</select>
+	
+	<select id="memberListCount" resultClass="int">
+        SELECT count(*) cnt
+          FROM MEMBER 
+    </select>
+	
+	<!-- select NOTICE SQL -->
+	<select id="memberList" parameterClass="memberVO" resultClass="memberVO">
+	     
+	     SELECT ADDRESS,
+				ADDRESS_DETAIL,
+				BUSINESS_NUMBER,
+				CELLPHONE_NUMBER,
+				COMPANY_NAME,
+				CORPORATE_NUMBER,
+				DIVISION,
+				EMAIL,
+				EXPIRY_DATE,
+				JOB,
+				DATE_FORMAT(JOIN_DATE, "%Y-%c-%e %r") as JOIN_DATE,
+				MEMBER_ID,
+				NAME,
+				PASSWORD,
+				PHONE_NUMBER,
+				ZIP_CODE
+           FROM MEMBER 
+	   ORDER BY JOIN_DATE DESC
+  	      LIMIT #startrow#, #endrow#
+	</select>
+	
+	<select id="selectMember" parameterClass="memberVO" resultClass="memberVO">
+	     
+	     SELECT ADDRESS,
+				ADDRESS_DETAIL,
+				BUSINESS_NUMBER,
+				CELLPHONE_NUMBER,
+				COMPANY_NAME,
+				CORPORATE_NUMBER,
+				DIVISION,
+				EMAIL,
+				EXPIRY_DATE,
+				JOB,
+				DATE_FORMAT(JOIN_DATE, "%Y-%c-%e %r") as JOIN_DATE,
+				MEMBER_ID,
+				NAME,
+				PASSWORD,
+				PHONE_NUMBER,
+				ZIP_CODE
+           FROM MEMBER 
+	      WHERE MEMBER_ID = #member_id#
+	</select>
+	
+	<update id="memberInfoModify" parameterClass="memberVO">
+	   
+	   UPDATE  MEMBER 
+		   SET DIVISION = #division#, 
+		   	   BUSINESS_NUMBER = #business_number#, 
+		   	   CORPORATE_NUMBER = #corporate_number#, 
+		   	   COMPANY_NAME = #company_name#, 
+		   	   JOB = #job#, 
+		   	   PHONE_NUMBER = #phone_number#, 
+		   	   CELLPHONE_NUMBER = #cellphone_number#, 
+		   	   ZIP_CODE = #zip_code#, 
+		   	   ADDRESS = #address#, 
+		   	   ADDRESS_DETAIL = #address_detail# 
+	     WHERE MEMBER_ID = #member_id#
+
+	   
+	   
+	</update>
+	
+	<update id="passModify" parameterClass="memberVO">
+	   
+	   UPDATE  MEMBER 
+		   SET PASSWORD = #new_password#
+	     WHERE MEMBER_ID = #member_id#
+	   
+	</update>
+	
+	<insert id="insertCertify" parameterClass="memberVO">
+	   
+	    INSERT 
+	      INTO CERTIFY(MEMBER_ID,
+               CERTIFY_KEY,
+               CREATE_DATE)
+		VALUES (#member_id#,
+               #certify_key#,
+               now())
+	   
+	   
+	</insert>
+	
+	<select id="certify" parameterClass="memberVO" resultClass="memberVO">
+	     
+	     SELECT i.CERTIFY_ID
+           FROM CERTIFY i
+     INNER JOIN MEMBER m
+	         ON i.MEMBER_ID = m.MEMBER_ID        
+	      WHERE i.MEMBER_ID = #member_id# AND i.CERTIFY_KEY = #certify_key# AND m.CERTIFY_STATUS = #certify_status#
+	</select>
+	
+	<update id="updateCertify" parameterClass="memberVO">
+	   
+	   UPDATE  MEMBER 
+		   SET CERTIFY_STATUS = #certify_status#
+	     WHERE MEMBER_ID = #member_id#
+	   
+	</update>
+	
+	<select id="emailCheck" parameterClass="memberVO" resultClass="memberVO">
+	     
+	    SELECT  MEMBER_ID
+           FROM MEMBER 
+          WHERE EMAIL=#email#
+	    
+	</select>
+	
+	<update id="withdrawal" parameterClass="memberVO">
+	   
+	   UPDATE  MEMBER 
+		   SET DELETE_DATE = now()
+	     WHERE MEMBER_ID = #member_id#
+	   
+	</update>
+	
+</sqlMap>

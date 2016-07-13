@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<!-- MemberDAOImpl 에서 호출할때 사용 -->
+<sqlMap namespace="Request">
+
+	<!-- 참조변수와 클래스경로 -->
+	
+	<typeAlias alias="requestVO" type="kr.co.jimant.home.request.RequestVO" />
+	
+	<select id="selectRequestListCount" resultClass="int">
+        SELECT count(*) cnt
+          FROM SERVICE_REQUEST i
+         INNER JOIN MEMBER m
+	      ON i.MEMBER_ID = m.MEMBER_ID  
+	  WHERE  i.DELETE_DATE is null AND RE_LEV = 0  
+    </select>
+
+	<!-- REQUEST 리스트 SQL -->
+	   <select id="selectRequestList" parameterClass="requestVO" resultClass="requestVO">
+	       
+<!-- 	  SELECT i.REQUEST_ID, -->
+<!--              i.REQUEST_TITLE, -->
+<!--              i.REQUEST_CONTENT, -->
+<!--              i.MEMBER_ID, -->
+<!--              DATE_FORMAT(i.CREATE_DATE, "%Y-%c-%e %r") as CREATE_DATE, -->
+<!--              i.COMPLETE_DATE, -->
+<!--              i.STATE, -->
+<!--              m.NAME -->
+<!--         FROM SERVICE_REQUEST i -->
+<!--        INNER JOIN MEMBER m -->
+<!-- 	      ON i.MEMBER_ID = m.MEMBER_ID   -->
+<!-- 	  WHERE  i.DELETE_DATE is null AND RE_LEV = 0      -->
+<!--     ORDER BY i.RE_REF DESC -->
+<!--   	   LIMIT #startrow#, #endrow# -->
+  		
+  		
+  		SELECT   @ROWNUM := @ROWNUM + 1 ROWNUM,
+       		 i.REQUEST_ID,
+             i.REQUEST_TITLE,
+             i.REQUEST_CONTENT,
+             i.MEMBER_ID,
+             DATE_FORMAT(i.CREATE_DATE, "%Y-%c-%e %r") as CREATE_DATE,
+             i.COMPLETE_DATE,
+             i.STATE,
+             m.NAME
+	     FROM SERVICE_REQUEST i
+       INNER JOIN MEMBER m
+	      ON i.MEMBER_ID = m.MEMBER_ID  ,
+       		 (SELECT @ROWNUM := 0) r
+	   WHERE  i.DELETE_DATE is null AND RE_LEV = 0    
+    ORDER BY ROWNUM DESC
+  	   LIMIT #startrow#, #endrow#
+  		
+    </select>
+	
+	
+	<!-- REQUEST 등록 SQL -->
+	<insert id="insertRequest" parameterClass="requestVO">
+	   
+	    INSERT 
+	      INTO SERVICE_REQUEST(MEMBER_ID,
+               REQUEST_TITLE,
+               REQUEST_CONTENT,
+               CREATE_DATE,
+               STATE)
+		VALUES (#member_id#,
+        	   #request_title#,
+        	   #request_content#,
+        	   now(),
+        	   #state#)
+	   
+	   
+	</insert>
+	
+	<select id="selectLastRequest" resultClass="Long">
+        SELECT  
+            max(REQUEST_ID)
+        FROM
+            SERVICE_REQUEST
+
+    </select>
+    
+    <update id="updateRe" parameterClass="requestVO">
+       
+ 	  	 UPDATE SERVICE_REQUEST
+       		SET	 RE_LEV=#re_lev#,
+             	 RE_REF=#re_ref#,
+             	 RE_SEQ=#re_seq#
+		  WHERE REQUEST_ID  = #request_id#
+
+	</update>
+
+	<select id="getSeqList" resultClass="requestVO">
+	       
+	  SELECT RE_SEQ,
+	  		 RE_LEV
+        FROM SERVICE_REQUEST
+	   WHERE RE_REF=#re_ref# AND RE_SEQ > #re_seq#
+	ORDER BY RE_SEQ ASC
+    </select>
+    
+    <select id="maxSeq" parameterClass="Long" resultClass="int">
+        SELECT  
+            max(RE_SEQ)
+        FROM
+            SERVICE_REQUEST
+	  where RE_REF=#re_ref#
+    </select>
+	
+	<!-- select REQUEST SQL -->
+	<select id="selectRequest" parameterClass="requestVO" resultClass="requestVO">
+	     
+	    SELECT  i.REQUEST_ID,
+       		    i.MEMBER_ID,
+                i.REQUEST_TITLE,
+                i.REQUEST_CONTENT,
+                DATE_FORMAT(i.CREATE_DATE, "%Y-%c-%e %r") as CREATE_DATE,
+                i.COMPLETE_DATE,
+                i.STATE,
+                i.RE_SEQ,
+                i.RE_LEV,
+                i.RE_REF,
+                m.NAME
+           FROM SERVICE_REQUEST i
+            	INNER JOIN MEMBER m
+	      	 ON i.MEMBER_ID = m.MEMBER_ID  
+          WHERE i.REQUEST_ID=#request_id#
+	    
+	</select>
+
+	<!-- REQUEST 수정 SQL -->
+	<update id="updateRequest" parameterClass="requestVO">
+       
+ 	  	 UPDATE SERVICE_REQUEST
+       		SET	REQUEST_TITLE = #request_title#,
+       			REQUEST_CONTENT = #request_content#
+		  WHERE REQUEST_ID  = #request_id#
+
+	</update>
+	
+	<!-- REQUEST 삭제 SQL -->
+	<update id="deleteRequest" parameterClass="requestVO">
+         
+         UPDATE SERVICE_REQUEST
+            SET	DELETE_DATE = now()
+ 		  WHERE REQUEST_ID = #request_id#
+
+	</update>
+	
+	<update id="updateSeq" parameterClass="requestVO">
+	     UPDATE SERVICE_REQUEST 
+	        set RE_SEQ=RE_SEQ+1 
+	      where RE_REF=#re_ref# and RE_SEQ>#re_seq#
+
+	</update>
+	
+	<!-- 답글 등록 SQL -->
+	<insert id="insertReply" parameterClass="requestVO">
+	    
+	  	INSERT 
+	      INTO SERVICE_REQUEST(MEMBER_ID,
+               REQUEST_TITLE,
+               REQUEST_CONTENT,
+               CREATE_DATE,
+               RE_SEQ,
+               RE_LEV,
+               RE_REF)
+		VALUES (#member_id#,
+        	   #request_title#,
+        	   #request_content#,
+        	   now(),
+        	   #re_seq#,
+        	   #re_lev#,
+        	   #re_ref#)
+		
+	</insert>
+	
+	<select id="requestDetailList" parameterClass="long" resultClass="requestVO">
+	       
+	  SELECT i.REQUEST_ID,
+             i.REQUEST_TITLE,
+             i.REQUEST_CONTENT,
+             i.MEMBER_ID,
+             DATE_FORMAT(i.CREATE_DATE, "%Y-%c-%e %r") as CREATE_DATE,
+             i.RE_LEV,
+             i.RE_REF,
+             i.RE_SEQ,
+             m.NAME
+        FROM SERVICE_REQUEST i
+       INNER JOIN MEMBER m
+	      ON i.MEMBER_ID = m.MEMBER_ID  
+	  WHERE  i.DELETE_DATE is null AND i.RE_REF =#request_id#
+    ORDER BY i.RE_REF DESC,
+        	 i.RE_SEQ 
+         ASC   
+    </select>
+    
+    <update id="stateModify" parameterClass="requestVO">
+       
+ 	  	 UPDATE SERVICE_REQUEST
+       		SET	STATE=#state#
+		  WHERE REQUEST_ID  = #request_id#
+
+	</update>
+	
+	  <update id="updateCompleteDate" parameterClass="requestVO">
+       
+ 	  	 UPDATE SERVICE_REQUEST
+       		SET	COMPLETE_DATE=now()
+		  WHERE REQUEST_ID  = #request_id#
+
+	</update>
+	
+</sqlMap>

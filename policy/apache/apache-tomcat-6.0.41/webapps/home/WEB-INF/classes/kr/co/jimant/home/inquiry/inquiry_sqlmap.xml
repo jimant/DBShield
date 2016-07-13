@@ -1,0 +1,279 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<!-- MemberDAOImpl 에서 호출할때 사용 -->
+<sqlMap namespace="Inquiry">
+
+	<!-- 참조변수와 클래스경로 -->
+	
+	<typeAlias alias="inquiryVO" type="kr.co.jimant.home.inquiry.InquiryVO" />
+	
+	
+	<select id="selectInquiryListCount" parameterClass="inquiryVO" resultClass="int">
+        SELECT count(*) cnt
+          FROM INQUIRY
+        WHERE  DELETE_DATE is null AND RE_LEV = 0 AND INQUIRY_THEME_ID = #inquiry_theme_id#   
+        
+    </select>
+
+	<!-- Inquiry 리스트 SQL -->
+	<select id="selectInquiryList" parameterClass="inquiryVO" resultClass="inquiryVO">
+	       
+<!-- 	  SELECT i.INQUIRY_ID, -->
+<!--              i.INQUIRY_TITLE, -->
+<!--              i.INQUIRY_CONTENT, -->
+<!--              i.INQUIRY_THEME_ID, -->
+<!--              i.MEMBER_ID, -->
+<!--              DATE_FORMAT(i.CREATE_DATE, "%Y-%c-%e %r") as CREATE_DATE, -->
+<!--              m.NAME -->
+<!--         FROM INQUIRY i -->
+<!--        INNER JOIN MEMBER m -->
+<!-- 	      ON i.MEMBER_ID = m.MEMBER_ID   -->
+<!-- 	 WHERE  i.DELETE_DATE is null AND i.RE_LEV = 0 AND i.INQUIRY_THEME_ID = #inquiry_theme_id#    -->
+<!--     ORDER BY i.INQUIRY_ID DESC -->
+<!--   	   LIMIT #startrow#, #endrow# -->
+  	
+  	
+  	SELECT   @ROWNUM := @ROWNUM + 1 ROWNUM,
+       		 i.INQUIRY_ID,
+             i.INQUIRY_TITLE,
+             i.INQUIRY_CONTENT,
+             i.INQUIRY_THEME_ID,
+             i.MEMBER_ID,
+             DATE_FORMAT(i.CREATE_DATE, "%Y-%c-%e %r") as CREATE_DATE,
+             m.NAME
+	    FROM INQUIRY i 
+       INNER JOIN MEMBER m
+	      ON i.MEMBER_ID = m.MEMBER_ID  ,
+       		 (SELECT @ROWNUM := 0) r
+	   WHERE i.DELETE_DATE is null AND i.RE_LEV = 0 AND i.INQUIRY_THEME_ID = #inquiry_theme_id# 
+    ORDER BY ROWNUM DESC
+  	   LIMIT #startrow#, #endrow#
+  		
+    </select>
+	
+	<select id="getLastReplyDate" parameterClass="Long" resultClass="String">
+        select DATE_FORMAT(CREATE_DATE, "%Y%m%d%H%i%s") as LAST_REPLY_DATE
+        FROM INQUIRY 
+        where RE_REF = #inquiry_id# AND RE_LEV > 0 order by INQUIRY_ID desc limit 1
+         
+        
+    </select>
+	
+	<!-- Inquiry 등록 SQL -->
+	<insert id="insertInquiry" parameterClass="inquiryVO">
+	   
+	    INSERT 
+	      INTO INQUIRY(MEMBER_ID,
+	      	   INQUIRY_THEME_ID,
+               INQUIRY_TITLE,
+               INQUIRY_CONTENT,
+               CREATE_DATE)
+		VALUES (#member_id#,
+				#inquiry_theme_id#,
+        	   #inquiry_title#,
+        	   #inquiry_content#,
+        	   now())
+	   
+	   
+	</insert>
+	
+	<select id="selectLastInquiry" resultClass="Long">
+        SELECT  
+            max(INQUIRY_ID)
+        FROM
+            INQUIRY
+
+    </select>
+    
+    <update id="updateRe" parameterClass="inquiryVO">
+       
+ 	  	 UPDATE INQUIRY
+       		SET	 RE_LEV=#re_lev#,
+             	 RE_REF=#re_ref#,
+             	 RE_SEQ=#re_seq#
+		  WHERE INQUIRY_ID  = #inquiry_id#
+
+	</update>
+	
+	<!-- select Inquiry SQL -->
+	<select id="selectInquiry" parameterClass="inquiryVO" resultClass="inquiryVO">
+	     
+	    SELECT  i.INQUIRY_ID,
+	    		i.INQUIRY_THEME_ID,
+       		    i.MEMBER_ID,
+                i.INQUIRY_TITLE,
+                i.INQUIRY_CONTENT,
+                DATE_FORMAT(i.CREATE_DATE, "%Y-%c-%e %r") as CREATE_DATE,
+                i.RE_SEQ,
+                i.RE_LEV,
+                i.RE_REF,
+                m.NAME
+           FROM INQUIRY i
+            	INNER JOIN MEMBER m
+	      	 ON i.MEMBER_ID = m.MEMBER_ID  
+          WHERE i.INQUIRY_ID=#inquiry_id#
+	    
+	</select>
+
+	<!-- Inquiry 수정 SQL -->
+	<update id="updateInquiry" parameterClass="inquiryVO">
+       
+ 	  	 UPDATE INQUIRY
+       		SET	INQUIRY_TITLE = #inquiry_title#,
+       			INQUIRY_CONTENT = #inquiry_content#
+		  WHERE INQUIRY_ID  = #inquiry_id#
+
+	</update>
+	
+	<!-- Inquiry 삭제 SQL -->
+	<update id="deleteInquiry" parameterClass="inquiryVO">
+         
+         UPDATE INQUIRY
+            SET	DELETE_DATE = now()
+ 		  WHERE INQUIRY_ID = #inquiry_id#
+
+	</update>
+	
+	<update id="updateSeq" parameterClass="inquiryVO">
+	     UPDATE INQUIRY 
+	        set RE_SEQ=RE_SEQ+1 
+	      where RE_REF=#re_ref# and RE_SEQ > #re_seq#
+
+	</update>
+	
+	<select id="getSeqList" resultClass="inquiryVO">
+	       
+	  SELECT RE_SEQ,
+	  		 RE_LEV
+        FROM INQUIRY
+	   WHERE RE_REF=#re_ref# AND RE_SEQ > #re_seq#
+	ORDER BY RE_SEQ ASC
+    </select>
+    
+    <select id="maxSeq" parameterClass="Long" resultClass="int">
+        SELECT  
+            max(RE_SEQ)
+        FROM
+            INQUIRY
+	  where RE_REF=#re_ref#
+    </select>
+	
+	<!-- 답글 등록 SQL -->
+	<insert id="insertReply" parameterClass="inquiryVO">
+	    
+	  	INSERT 
+	      INTO INQUIRY(INQUIRY_THEME_ID,
+	      		MEMBER_ID,
+               INQUIRY_TITLE,
+               INQUIRY_CONTENT,
+               CREATE_DATE,
+               RE_SEQ,
+               RE_LEV,
+               RE_REF)
+		VALUES (#inquiry_theme_id#,
+				#member_id#,
+        	   #inquiry_title#,
+        	   #inquiry_content#,
+        	   now(),
+        	   #re_seq#,
+        	   #re_lev#,
+        	   #re_ref#)
+		
+	</insert>
+	
+	<select id="inquiryDetailList" parameterClass="long" resultClass="inquiryVO">
+	       
+	  SELECT i.INQUIRY_ID,
+	  		 i.INQUIRY_THEME_ID,
+             i.INQUIRY_TITLE,
+             i.INQUIRY_CONTENT,
+             i.MEMBER_ID,
+             DATE_FORMAT(i.CREATE_DATE, "%Y-%c-%e %r") as CREATE_DATE,
+             i.RE_LEV,
+             i.RE_REF,
+             i.RE_SEQ,
+             m.NAME,
+             m.MEMBER_ID
+        FROM INQUIRY i
+       INNER JOIN MEMBER m
+	      ON i.MEMBER_ID = m.MEMBER_ID  
+	  WHERE  i.DELETE_DATE is null AND i.RE_REF =#inquiry_id#
+    ORDER BY i.RE_REF DESC,
+        	 i.RE_SEQ ASC   
+    </select>
+	
+	<insert id="insertInquiryTheme" parameterClass="inquiryVO">
+	    
+	  	INSERT 
+	      INTO INQUIRY_THEME(MEMBER_ID,
+               INQUIRY_THEME,
+               INQUIRY_EXPLAIN,
+               CREATE_DATE)
+		VALUES (#member_id#,
+        	   #inquiry_theme#,
+        	   #inquiry_explain#,
+        	   now())
+		
+	</insert>
+	
+	<select id="inquiryThemeList" resultClass="inquiryVO">
+	       
+	  SELECT i.INQUIRY_THEME_ID,
+             i.INQUIRY_THEME,
+             i.INQUIRY_EXPLAIN,
+             i.MEMBER_ID,
+             DATE_FORMAT(i.CREATE_DATE, "%Y-%c-%e %r") as CREATE_DATE,
+             m.NAME
+        FROM INQUIRY_THEME i
+       INNER JOIN MEMBER m
+	      ON i.MEMBER_ID = m.MEMBER_ID  
+	   WHERE i.DELETE_DATE is null
+    </select>
+    
+    <select id="getInquiryList" parameterClass="Long" resultClass="inquiryVO">
+	       
+<!-- 	  SELECT i.INQUIRY_THEME_ID, -->
+<!-- 	  		 i.INQUIRY_ID, -->
+<!--              i.INQUIRY_TITLE, -->
+<!--              i.INQUIRY_CONTENT, -->
+<!--              DATE_FORMAT(i.CREATE_DATE, "%Y-%c-%e %r") as CREATE_DATE, -->
+<!--              m.NAME, -->
+<!--              m.MEMBER_ID -->
+<!--         FROM INQUIRY i -->
+<!--        INNER JOIN MEMBER m -->
+<!-- 	      ON i.MEMBER_ID = m.MEMBER_ID   -->
+<!-- 	  WHERE  i.DELETE_DATE is null AND i.RE_LEV = 0 AND i.INQUIRY_THEME_ID = #inquiry_theme_id#      -->
+<!--     ORDER BY i.INQUIRY_ID DESC -->
+<!--   	   LIMIT 0, 5 -->
+  	   
+  	   SELECT   @ROWNUM := @ROWNUM + 1 ROWNUM,
+       		 i.INQUIRY_ID,
+             i.INQUIRY_TITLE,
+             i.INQUIRY_CONTENT,
+             i.INQUIRY_THEME_ID,
+             i.MEMBER_ID,
+             DATE_FORMAT(i.CREATE_DATE, "%Y-%c-%e %r") as CREATE_DATE,
+             m.NAME
+	    FROM INQUIRY i 
+       INNER JOIN MEMBER m
+	      ON i.MEMBER_ID = m.MEMBER_ID  ,
+       		 (SELECT @ROWNUM := 0) r
+	   WHERE i.DELETE_DATE is null AND i.RE_LEV = 0 AND i.INQUIRY_THEME_ID = #inquiry_theme_id# 
+    ORDER BY ROWNUM DESC
+  	   LIMIT 0, 5
+  	   
+    </select>
+    
+     <select id="getTheme" parameterClass="inquiryVO" resultClass="inquiryVO">
+	       
+	  SELECT INQUIRY_THEME_ID,
+	  		 INQUIRY_THEME,
+	  		 INQUIRY_EXPLAIN	  		
+        FROM INQUIRY_THEME
+	  WHERE  INQUIRY_THEME_ID = #inquiry_theme_id#     
+    </select>
+	
+</sqlMap>

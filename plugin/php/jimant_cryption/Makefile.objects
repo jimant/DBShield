@@ -1,0 +1,8 @@
+jimant_cryption.lo: /usr/src/jimant/plugin/php/jimant_cryption/jimant_cryption.c
+	$(LIBTOOL) --mode=compile $(CC)  -I. -I/usr/src/jimant/plugin/php/jimant_cryption $(COMMON_FLAGS) $(CFLAGS_CLEAN) $(EXTRA_CFLAGS)  -c /usr/src/jimant/plugin/php/jimant_cryption/jimant_cryption.c -o jimant_cryption.lo 
+$(phplibdir)/jimant_cryption.la: ./jimant_cryption.la
+	$(LIBTOOL) --mode=install cp ./jimant_cryption.la $(phplibdir)
+
+./jimant_cryption.la: $(shared_objects_jimant_cryption) $(JIMANT_CRYPTION_SHARED_DEPENDENCIES)
+	$(LIBTOOL) --mode=link $(CC) $(COMMON_FLAGS) $(CFLAGS_CLEAN) $(EXTRA_CFLAGS) $(LDFLAGS) -o $@ -export-dynamic -avoid-version -prefer-pic -module -rpath $(phplibdir) $(EXTRA_LDFLAGS) $(shared_objects_jimant_cryption) $(JIMANT_CRYPTION_SHARED_LIBADD)
+

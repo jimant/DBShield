@@ -1,0 +1,120 @@
+#
+  #
+  # Copyright (C) 2011 Seungwoo Baek, Jimant technology,Inc.
+  #
+  # Licensed under the LGPL v3 see the file LICENSE in base directory.
+  #
+#
+
+#!/bin/bash
+
+WORK_DIR=$(pwd)
+#WORK_DIR="$ROOT_WORK_DIR/core"
+
+PUBLISH="0"
+
+# Compile Option
+COMPILE_DEFINE="-D__NATIVE__"
+COMPILE_OPTIONS="-g -O0 -std=gnu99 -Wall"
+
+echo $COMPILE_OPTIONS
+
+if [ $# -ge 1 ]
+then
+echo $1
+COMPILE_DEFINE="-D$1"
+fi
+
+USER_LIB_PATH=$LIBS_DIR
+
+LIB_PRE_NAME="jimant"
+
+LIB_MID_NAME="_"
+case "$1" in
+    __PHP__)
+	LIB_MID_NAME="_php_"
+    ;;
+    __JNI__)
+	LIB_MID_NAME="_jni_"
+    ;;
+    __MYSQL__)
+	LIB_MID_NAME="_mysql_"
+    ;;
+    __ORACLE__)
+	LIB_MID_NAME="_oracle_"
+    ;;
+esac
+
+LIB_APP_NAME="cryption"
+
+LIB_NAME="$LIB_PRE_NAME$LIB_MID_NAME$LIB_APP_NAME"
+LIB_FULL_NAME="lib$LIB_NAME"
+
+echo $LIB_NAME
+echo $LIB_FULL_NAME
+
+# Static Library Name
+STATIC_LIB_NAME="$LIB_FULL_NAME.a"
+
+# Shared Library Names
+SHARED_LIB_FULL_NAME="$LIB_FULL_NAME.so.1.0.0"
+SHARED_LIB_LINK_NAME="$LIB_FULL_NAME.so"
+SHARED_LIB_DYNAMIC_LINK_NAME="$LIB_FULL_NAME.so.1"
+
+SHARED_CONF_FILE_PATH="/etc/ld.so.conf.d/jimant_cryption-x86_64.conf"
+
+INCLUDE_PATH=""
+
+# Include Library Path
+LIB_PATHS="-L/usr/lib64/mysql -L/usr/local/lib"
+#LIB_PATHS="-L/usr/lib64/mysql"
+
+# Include Library Path
+LINK_RPATH="-Wl,-rpath=/usr/local/lib"
+
+# Link Library
+#LINK_LIBS="-lgcrypt -lgpg-error"
+LINK_LIBS="-lgcrypt"
+
+rm -rf $USER_LIB_PATH/$STATIC_LIB_NAME
+rm -rf $USER_LIB_PATH/$SHARED_LIB_FULL_NAME
+rm -rf $USER_LIB_PATH/$SHARED_LIB_LINK_NAME
+rm -rf $USER_LIB_PATH/$SHARED_LIB_DYNAMIC_LINK_NAME
+rm -rf /lib64/$SHARED_LIB_DYNAMIC_LINK_NAME
+
+# Static Library Create
+gcc $COMPILE_DEFINE $COMPILE_OPTIONS $INCLUDE_PATH $LINK_RPATH $LIB_PATHS -c $JIMANT_WORK_ROOT_PATH/fo4sLibs/fo4sLibs.c 		-o $OBJS_DIR/fo4sLibs.o 		$LINK_LIBS
+gcc $COMPILE_DEFINE $COMPILE_OPTIONS $INCLUDE_PATH $LINK_RPATH $LIB_PATHS -c $JIMANT_WORK_ROOT_PATH/sharedMemory/sharedMemory.c 	-o $OBJS_DIR/sharedMemory.o 	$LINK_LIBS
+gcc $COMPILE_DEFINE $COMPILE_OPTIONS $INCLUDE_PATH $LINK_RPATH $LIB_PATHS -c $JIMANT_WORK_ROOT_PATH/logManager/logManager.c 		-o $OBJS_DIR/logManager.o 		$LINK_LIBS
+gcc $COMPILE_DEFINE $COMPILE_OPTIONS $INCLUDE_PATH $LINK_RPATH $LIB_PATHS -c $WORK_DIR/cryptUtils.c 		-o $OBJS_DIR/cryptUtils.o 		$LINK_LIBS
+gcc $COMPILE_DEFINE $COMPILE_OPTIONS $INCLUDE_PATH $LINK_RPATH $LIB_PATHS -c $WORK_DIR/encryption.c 		-o $OBJS_DIR/encryption.o 		$LINK_LIBS
+gcc $COMPILE_DEFINE $COMPILE_OPTIONS $INCLUDE_PATH $LINK_RPATH $LIB_PATHS -c $WORK_DIR/decryption.c 		-o $OBJS_DIR/decryption.o 		$LINK_LIBS
+
+ar crs $USER_LIB_PATH/$STATIC_LIB_NAME $OBJS_DIR/*.o
+ranlib $USER_LIB_PATH/$STATIC_LIB_NAME
+
+
+# Shared Library Create
+rm -rf $OBJS_DIR/*.o
+
+gcc -fPIC $COMPILE_DEFINE $COMPILE_OPTIONS $INCLUDE_PATH $LINK_RPATH $LIB_PATHS -c $JIMANT_WORK_ROOT_PATH/fo4sLibs/fo4sLibs.c 		-o $OBJS_DIR/fo4sLibs.o 		$LINK_LIBS
+gcc -fPIC $COMPILE_DEFINE $COMPILE_OPTIONS $INCLUDE_PATH $LINK_RPATH $LIB_PATHS -c $JIMANT_WORK_ROOT_PATH/sharedMemory/sharedMemory.c 	-o $OBJS_DIR/sharedMemory.o 	$LINK_LIBS
+gcc -fPIC $COMPILE_DEFINE $COMPILE_OPTIONS $INCLUDE_PATH $LINK_RPATH $LIB_PATHS -c $JIMANT_WORK_ROOT_PATH/logManager/logManager.c 		-o $OBJS_DIR/logManager.o		$LINK_LIBS
+gcc -fPIC $COMPILE_DEFINE $COMPILE_OPTIONS $INCLUDE_PATH $LINK_RPATH $LIB_PATHS -c $WORK_DIR/cryptUtils.c 			-o $OBJS_DIR/cryptUtils.o 		$LINK_LIBS
+gcc -fPIC $COMPILE_DEFINE $COMPILE_OPTIONS $INCLUDE_PATH $LINK_RPATH $LIB_PATHS -c $WORK_DIR/encryption.c 			-o $OBJS_DIR/encryption.o 		$LINK_LIBS
+gcc -fPIC $COMPILE_DEFINE $COMPILE_OPTIONS $INCLUDE_PATH $LINK_RPATH $LIB_PATHS -c $WORK_DIR/decryption.c 			-o $OBJS_DIR/decryption.o 		$LINK_LIBS
+
+gcc -g -shared -W1,-soname,$SHARED_LIB_DYNAMIC_LINK_NAME -o $USER_LIB_PATH/$SHARED_LIB_FULL_NAME $OBJS_DIR/*.o
+
+
+ln -s $USER_LIB_PATH/$SHARED_LIB_FULL_NAME $USER_LIB_PATH/$SHARED_LIB_LINK_NAME
+ln -s $USER_LIB_PATH/$SHARED_LIB_FULL_NAME /lib64/$SHARED_LIB_DYNAMIC_LINK_NAME
+
+rm -rf $OBJS_DIR/*.o
+
+echo $LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$USER_LIB_PATH
+echo $LD_LIBRARY_PATH
+
+echo $USER_LIB_PATH
+echo $SHARED_CONF_FILE_PATH

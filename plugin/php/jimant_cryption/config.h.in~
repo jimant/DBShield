@@ -1,0 +1,20 @@
+/* config.h.in.  Generated automatically from configure.in by autoheader.  */
+
+/* Define if your C compiler doesn't accept -c and -o together.  */
+#undef NO_MINUS_C_MINUS_O
+
+/* Define if you have the <dlfcn.h> header file.  */
+#undef HAVE_DLFCN_H
+
+/*   */
+#undef HAVE_GPGERRORLIB
+
+/*   */
+#undef HAVE_GCRYPTLIB
+
+/*   */
+#undef HAVE_JIMANTLIB
+
+/* Whether to build jimant_cryption as dynamic module */
+#undef COMPILE_DL_JIMANT_CRYPTION
+

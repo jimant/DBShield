@@ -1,0 +1,109 @@
+@charset "utf-8";
+body,div,p,ul,li,dl,dt,dd,span,strong,h1,h2,h3,h4{margin:0; padding:0;font-size:12px;font-family:'돋움',Arial,Apple Gothic,sans-serif}
+ul,ol{list-style:none}
+table{border-collapse:collapse}
+caption,legend{display:none}
+img{border:0}
+a{color:#656565;text-decoration:none}
+input,label,a,img,select{vertical-align:middle}
+select,input{font-size:12px}
+
+/* input */
+input.max {width:100%; height:18px;}
+input.med {width:60%; height:18px;}
+input.min {width:30%; height:18px;}
+
+input.gray {background-color:#f7f7f7; border:none;}
+
+/* select */
+select.max {width:100%;}
+
+/* margin & padding */
+.mb30{margin-bottom:30px !important}
+.mb10{margin-bottom:10px !important}
+.mb20{margin-bottom:20px !important}
+.ml10{margin-left:10px !important}
+.ml20{margin-left:20px !important}
+.ml50{margin-left:50px !important}
+.mr10{margin-right:10px !important}
+.mr20{margin-right:20px !important}
+.mr30{margin-right:30px !important}
+.mt10{margin-top:10px !important}
+.mt20{margin-top:20px !important}
+.mt30{margin-top:30px !important}
+
+.c_both{clear:both}
+.fl{float:left}
+.fr{float:right}
+
+.c_bg{background-image:none !important}
+
+/* align */
+.ac{text-align:center !important}
+.al{text-align:left !important}
+.ar{text-align:right !important}
+.vm{vertical-align:middle}
+.vt{vertical-align:top;}
+
+/* display */
+.inblock{display:inline-block}
+
+/* position */
+.p-rel{position:relative}
+
+/* link */
+a:focus{outline:none}
+
+/* background color */
+.gray {background-color:#f7f7f7;}
+
+/* body{background-image:url('../images/common/bg_body.jpg');background-position:left top;} */
+
+#wrap{width:100%; min-width:1230px; position:relative; overflow:hidden;}
+
+#header {height:306px; background-image:url('../images/common/bg_navi.png'); background-position:left bottom; background-repeat:repeat-x;}
+#header h1 {padding-top:29px;}
+#header .gnb_combine {width:1158px; margin:0 auto; text-align:center; position:relative;}
+#header div.quick {position:absolute; top:0; right:68px;}
+#header div.quick ul {float:right; clear:left;}
+#header div.quick li {margin-left:16px; float:left;}
+
+#header div.quick ul.quick li {margin-left:30px;}
+#header div.quick ul.quick li:first-child {margin:left:0;}
+
+#header p.user {text-align:right; clear:both;}
+#header p.user strong {height:25px; margin-top:38px; margin-bottom:13px; font-size:22px; line-height:22px; display:inline-block;}
+
+#header .navi {width:1158px; margin:0 auto; padding-top:50px; text-align:center;}
+#header .navi li {margin:0 18px; float:left;}
+#header .navi li:first-child {margin-left:30px;}
+#header .navi li img {padding-left:15px; background-image:url('../images/common/bullet_navi.png'); background-position:left -56px; background-repeat:no-repeat;}
+#header .navi li.on img {background-position:left 8px;}
+
+#header .gnb_sub {width:100%; height:180px; background-image:url('../images/common/bg_subnavi.png'); background-position:left top; position:absolute; top:304px; left:0; z-index:100;}
+#header div.gnb_sub > ul {width:1158px; margin:0 auto; padding-top:20px;}
+#header div.gnb_sub > ul > li {float:left;}
+#header div.gnb_sub li li {padding:8px 0 8px 17px; background-image:url('../images/common/bullet_navi.png'); background-position:left -8px; background-repeat:no-repeat;}
+#header div.gnb_sub a {color:#ffffff; font-size:16px; font-weight:bold;}
+#header div.gnb_sub li.on {background-position:left 12px;}
+#header div.gnb_sub li.on a {color:#ffcc66}
+
+#header .company {margin-left:30px;}
+#header .tongtong {margin-left:54px;}
+#header .schedule {margin-left:90px;}
+#header .ticketing {margin-left:119px;}
+#header .qna {margin-left:89px;}
+#header .review {margin-left:31px;}
+#header .diary {margin-left:86px;}
+
+#container {clear:both;}
+
+#footer {width:1158px; margin:0 auto; clear:both; position:relative;}
+#footer ul {margin-left:70px; padding-top:16px;}
+#footer li {padding:0 13px; background-image:url('../images/common/line_footer.gif'); background-position:left top; background-repeat:no-repeat; float:left;}
+#footer li:first-child, #footer .front {padding-left:0 !important; background-image:none !important;}
+#footer li a {margin-bottom:26px; color:#000000; font-size:15px; font-weight:bold; display:block;}
+#footer p.info span {padding:0 10px; font-size:15px; font-weight:bold; line-height:18px; background-image:url('../images/common/line_footer.gif'); background-position:left top; background-repeat:no-repeat; display:inline-block;}
+#footer p {margin-left:70px; font-size:15px; font-weight:bold;}
+
+#footer a.info {position:absolute; top:53px; right:50px;}

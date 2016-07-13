@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<taglib xmlns="http://java.sun.com/xml/ns/j2ee"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee/web-jsptaglibrary_2_0.xsd" version="2.0">
+
+    <tlib-version>1.2</tlib-version>
+    <uri>http://www.jimant.co.kr/StringConvert</uri>
+    
+    <function>
+        <name>enterToBr</name>
+        <function-class>kr.co.jimant.taglib.StringConvert</function-class>
+        <function-signature>
+            java.lang.String enterToBr(java.lang.String)
+        </function-signature>
+    </function>
+    
+    <function>
+        <name>convertHtmlSp</name>
+        <function-class>kr.co.jimant.taglib.StringConvert</function-class>
+        <function-signature>
+            java.lang.String convertHtmlSp(java.lang.String)
+        </function-signature>
+    </function>
+    
+    <function>
+        <name>getStrDate</name>
+        <function-class>kr.co.jimant.taglib.StringConvert</function-class>
+        <function-signature>
+            java.lang.String getStrDate(java.lang.String, java.lang.String)
+        </function-signature>
+    </function>
+    
+    <function>
+        <name>escapeJavaScript</name>
+        <function-class>kr.co.jimant.taglib.StringConvert</function-class>
+        <function-signature>
+            java.lang.String escapeJavaScript(java.lang.String)
+        </function-signature>
+    </function>
+    
+</taglib>

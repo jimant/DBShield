@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<!-- MemberDAOImpl 에서 호출할때 사용 -->
+<sqlMap namespace="Encryption">
+
+	<!-- 참조변수와 클래스경로 -->
+	
+	<typeAlias alias="adminVO" type="kr.co.jimant.report.vo.AdminVO" />
+	
+    <typeAlias alias="accessLogVO" type="kr.co.jimant.report.vo.AccessLogVO" />
+	
+	<select id="login" parameterClass="adminVO" resultClass="adminVO">
+	       
+	  SELECT ADMIN_ID, 
+	  		 PASSWORD,
+	  		 NAME,
+	  		 PERMISSION 
+        FROM ADMIN
+	  WHERE  ADMIN_ID  = #admin_id#	AND	PASSWORD = #password#
+  		
+    </select>
+    
+	<select id="selectAccessLog" parameterClass="accessLogVO" resultClass="accessLogVO">
+		SELECT A.*
+		  FROM (
+				SELECT CONNECT_IP
+				     , CONNECT_DB_USER
+				     , ENCRYPTION_YN
+				     , ALLOW_YN
+				     , DENY_REASON
+				     , SUM(COUNT) COUNT
+				  FROM FO4S.ACCESS_LOG
+				 WHERE REGIST_DATE BETWEEN STR_TO_DATE(CONCAT(#datepickerStart#, #ptTimeStart#), '%Y-%m-%d%h:%i %p') AND STR_TO_DATE(CONCAT(#datepickerEnd#, #ptTimeEnd#), '%Y-%m-%d%h:%i %p')
+				 <isNotEmpty property="encryption_yn">
+				   AND ENCRYPTION_YN = #encryption_yn#
+				 </isNotEmpty>
+				 <isNotEmpty property="allow_yn">
+				   AND ALLOW_YN = #allow_yn#
+				 </isNotEmpty>
+		         <isNotEmpty property="connect_ip">
+				   AND CONNECT_IP = #connect_ip#
+		         </isNotEmpty>
+		         <isNotEmpty property="connect_db_user">
+				   AND CONNECT_DB_USER = #connect_db_user#
+		         </isNotEmpty>
+				 GROUP BY CONNECT_IP
+				     , CONNECT_DB_USER
+				     , ENCRYPTION_YN
+				     , ALLOW_YN
+				     , DENY_REASON
+				 ) A
+			 LIMIT 0, #topN#
+    </select>
+    
+</sqlMap>

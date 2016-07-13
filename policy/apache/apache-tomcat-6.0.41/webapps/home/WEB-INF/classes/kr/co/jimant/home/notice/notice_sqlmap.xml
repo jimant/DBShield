@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<!-- MemberDAOImpl 에서 호출할때 사용 -->
+<sqlMap namespace="Notice">
+
+	<!-- 참조변수와 클래스경로 -->
+	
+	<typeAlias alias="noticeVO" type="kr.co.jimant.home.notice.NoticeVO" />
+	
+	<select id="selectNoticeListCount" resultClass="int">
+        SELECT count(*) cnt
+          FROM NOTICE i
+    INNER JOIN MEMBER m
+	        ON i.MEMBER_ID = m.MEMBER_ID
+        WHERE  i.DELETE_DATE is null AND RE_LEV = 0    
+    </select>
+
+	<!-- NOTICE 리스트 SQL -->
+	   <select id="selectNoticeList" parameterClass="noticeVO" resultClass="noticeVO">
+	       
+<!-- 	  SELECT i.NOTICE_ID, -->
+<!--              i.NOTICE_TITLE, -->
+<!--              i.NOTICE_CONTENT, -->
+<!--              i.MEMBER_ID, -->
+<!--              DATE_FORMAT(i.CREATE_DATE, "%Y-%c-%e %r") as CREATE_DATE, -->
+<!--              m.NAME -->
+<!--         FROM NOTICE i -->
+<!--        INNER JOIN MEMBER m -->
+<!-- 	      ON i.MEMBER_ID = m.MEMBER_ID   -->
+<!-- 	  WHERE  i.DELETE_DATE is null AND RE_LEV = 0      -->
+<!--     ORDER BY i.NOTICE_ID DESC -->
+<!--   	   LIMIT #startrow#, #endrow# -->
+  		
+  		SELECT   @ROWNUM := @ROWNUM + 1 ROWNUM,
+       		 i.NOTICE_ID,
+             i.NOTICE_TITLE,
+             i.NOTICE_CONTENT,
+             i.MEMBER_ID,
+             DATE_FORMAT(i.CREATE_DATE, "%Y-%c-%e %r") as CREATE_DATE,
+             m.NAME
+        FROM NOTICE i
+       INNER JOIN MEMBER m
+	      ON i.MEMBER_ID = m.MEMBER_ID  ,
+       		 (SELECT @ROWNUM := 0) r
+	    WHERE  i.DELETE_DATE is null AND RE_LEV = 0    
+    ORDER BY ROWNUM DESC
+  	   LIMIT #startrow#, #endrow#
+  		
+    </select>
+	
+	
+	<!-- NOTICE 등록 SQL -->
+	<insert id="insertNotice" parameterClass="noticeVO">
+	   
+	    INSERT 
+	      INTO NOTICE(MEMBER_ID,
+               NOTICE_TITLE,
+               NOTICE_CONTENT,
+               CREATE_DATE)
+		VALUES (#member_id#,
+        	   #notice_title#,
+        	   #notice_content#,
+        	   now())
+	   
+	   
+	</insert>
+	
+	<select id="selectLastNotice" resultClass="Long">
+        SELECT  
+            max(NOTICE_ID)
+        FROM
+            NOTICE
+
+    </select>
+    
+     <update id="updateRe" parameterClass="noticeVO">
+       
+ 	  	 UPDATE NOTICE
+       		SET	 RE_LEV=#re_lev#,
+             	 RE_REF=#re_ref#,
+             	 RE_SEQ=#re_seq#
+		  WHERE NOTICE_ID  = #notice_id#
+
+	</update>
+	
+	<select id="getSeqList" resultClass="noticeVO">
+	       
+	  SELECT RE_SEQ,
+	  		 RE_LEV
+        FROM NOTICE
+	   WHERE RE_REF=#re_ref# AND RE_SEQ > #re_seq#
+	ORDER BY RE_SEQ ASC
+    </select>
+    
+    <select id="maxSeq" parameterClass="Long" resultClass="int">
+        SELECT  
+            max(RE_SEQ)
+        FROM
+            NOTICE
+	  where RE_REF=#re_ref#
+    </select>
+	
+	<!-- select NOTICE SQL -->
+	<select id="selectNotice" parameterClass="noticeVO" resultClass="noticeVO">
+	     
+	    SELECT  i.NOTICE_ID,
+       		    i.MEMBER_ID,
+                i.NOTICE_TITLE,
+                i.NOTICE_CONTENT,
+                DATE_FORMAT(i.CREATE_DATE, "%Y-%c-%e %r") as CREATE_DATE,
+                i.RE_LEV,
+             	i.RE_REF,
+             	i.RE_SEQ,
+                m.NAME
+           FROM NOTICE i
+     INNER JOIN MEMBER m
+	      	 ON i.MEMBER_ID = m.MEMBER_ID  
+          WHERE i.NOTICE_ID=#notice_id#
+	    
+	</select>
+
+	<!-- NOTICE 수정 SQL -->
+	<update id="updateNotice" parameterClass="noticeVO">
+       
+ 	  	 UPDATE NOTICE
+       		SET	NOTICE_TITLE = #notice_title#,
+       			NOTICE_CONTENT = #notice_content#
+		  WHERE NOTICE_ID  = #notice_id#
+
+	</update>
+	
+	<!-- NOTICE 삭제 SQL -->
+	<update id="deleteNotice" parameterClass="noticeVO">
+         
+         UPDATE NOTICE
+            SET	DELETE_DATE = now()
+ 		  WHERE NOTICE_ID  = #notice_id#
+
+	</update>
+	
+	<update id="updateSeq" parameterClass="noticeVO">
+	     UPDATE NOTICE 
+	        set RE_SEQ=RE_SEQ+1 
+	      where RE_REF=#re_ref# and RE_SEQ>#re_seq#
+
+	</update>
+	
+	<!-- 답글 등록 SQL -->
+	<insert id="insertReply" parameterClass="noticeVO">
+	    
+	  	INSERT 
+	      INTO NOTICE(MEMBER_ID,
+               NOTICE_TITLE,
+               NOTICE_CONTENT,
+               CREATE_DATE,
+               RE_SEQ,
+               RE_LEV,
+               RE_REF)
+		VALUES (#member_id#,
+        	   #notice_title#,
+        	   #notice_content#,
+        	   now(),
+        	   #re_seq#,
+        	   #re_lev#,
+        	   #re_ref#)
+		
+	</insert>
+	
+	<select id="noticeDetailList" parameterClass="long" resultClass="noticeVO">
+	       
+	  SELECT i.NOTICE_ID,
+             i.NOTICE_TITLE,
+             i.NOTICE_CONTENT,
+             i.MEMBER_ID,
+             DATE_FORMAT(i.CREATE_DATE, "%Y-%c-%e %r") as CREATE_DATE,
+             i.RE_LEV,
+             i.RE_REF,
+             i.RE_SEQ,
+             m.NAME
+        FROM NOTICE i
+       INNER JOIN MEMBER m
+	      ON i.MEMBER_ID = m.MEMBER_ID  
+	  WHERE  i.DELETE_DATE is null AND i.RE_REF =#notice_id#
+    ORDER BY i.RE_REF DESC,
+        	 i.RE_SEQ ASC   
+    </select>
+	
+	
+</sqlMap>

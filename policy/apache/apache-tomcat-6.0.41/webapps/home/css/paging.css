@@ -1,0 +1,20 @@
+@CHARSET "UTF-8";
+
+.selectedPage {
+	padding: 0px 3px 0px 3px;
+    color: #FF9C00;
+    font-weight: bold;
+    font-size: 11pt;
+}
+
+.noneSelectedPage {
+	font-size: 10pt;
+	cursor: pointer;
+    padding: 0px 3px 0px 3px;
+}
+
+.pagingImg {
+    border: 0px;
+    padding: 0px 5px 0px 5px;
+    vertical-align: middle;
+}

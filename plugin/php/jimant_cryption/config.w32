@@ -1,0 +1,13 @@
+// $Id$
+// vim:ft=javascript
+
+// If your extension references something external, use ARG_WITH
+// ARG_WITH("jimant_cryption", "for jimant_cryption support", "no");
+
+// Otherwise, use ARG_ENABLE
+// ARG_ENABLE("jimant_cryption", "enable jimant_cryption support", "no");
+
+if (PHP_JIMANT_CRYPTION != "no") {
+	EXTENSION("jimant_cryption", "jimant_cryption.c");
+}
+

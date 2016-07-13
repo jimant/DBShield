@@ -1,0 +1,631 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN" 
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<!-- MemberDAOImpl 에서 호출할때 사용 -->
+<sqlMap namespace="Encryption">
+
+	<!-- 참조변수와 클래스경로 -->
+	
+	<typeAlias alias="policyVO" type="kr.co.jimant.fo4s.vo.PolicyVO" />
+	
+	<typeAlias alias="keyVO" type="kr.co.jimant.fo4s.vo.KeyVO" />
+
+	<typeAlias alias="accessControlVO" type="kr.co.jimant.fo4s.vo.AccessControlVO" />
+	
+	<typeAlias alias="adminVO" type="kr.co.jimant.fo4s.vo.AdminVO" />
+	
+	<typeAlias alias="workVO" type="kr.co.jimant.fo4s.vo.WorkVO" />
+    <typeAlias alias="accessLogVO" type="kr.co.jimant.fo4s.vo.AccessLogVO" />
+	
+	
+	<!-- GlobalPolicy SQL -->
+	<insert id="insertGlobalPolicy" parameterClass="policyVO">
+
+		INSERT INTO GLOBAL_ENCRYPT_POLICY
+					(ALGORITHM, 
+					OPERATE_MODE,
+					DB_TYPE,
+					DB_NAME)
+		
+			VALUES (#algorithm#, 
+					#operate_mode#,
+					#db_type#,
+					#db_name#);
+	</insert>
+	
+	<!-- ColumnPolicy SQL -->
+	<insert id="insertColumnPolicy" parameterClass="policyVO">
+
+		INSERT INTO COLUMN_ENCRYPT_POLICY
+					(USER, 
+					TABLE_NAME, 
+					COLUMN_NAME, 
+					HASH_CHECK, 
+					HASH_SALT, 
+					IV_CHECK, 
+					IV_VALUE, 
+					PARTIAL_ENCRYPT_CHECK, 
+					PARTIAL_ENCRYPT_LENGTH, 
+					MASK_CHECK, 
+					MASK_DIGIT, 
+					MASK_VALUE)
+					
+		VALUES		(#user#, 
+					#table_name#, 
+					#column_name#, 
+					#hash_check#, 
+					#hash_salt#, 
+					#iv_check#, 
+					#iv_value#, 
+					#partial_encrypt_check#, 
+					#partial_encrypt_length#, 
+					#mask_check#, 
+					#mask_digit#, 
+					#mask_value#);
+
+	</insert>
+	
+	<insert id="insertEck" parameterClass="keyVO">
+
+		INSERT INTO DATA_ENCRYPT_KEY
+					(ENCRYPT_KEY, 
+					CREATE_DATE)
+					
+		VALUES		(#encrypt_key#, 
+					DATE_FORMAT(now(), "%Y%m%d%H%i%s") );
+
+	</insert>
+	
+	<insert id="insertKek" parameterClass="keyVO">
+
+		INSERT INTO KEY_ENCRYPT_KEY
+					(ENCRYPT_KEY, 
+					CREATE_DATE)
+					
+		VALUES		(#encrypt_key#, 
+					DATE_FORMAT(now(), "%Y%m%d%H%i%s"));
+
+	</insert>
+	
+	<insert id="insertPolicyAC" parameterClass="accessControlVO">
+
+		INSERT INTO POLICY_ACCESS_CONTROL
+					(CONNECT_IP, 
+					CONNECT_DB_USER,
+					START_TIME,
+					END_TIME,
+					CONNECT_PROGRAM_NAME)
+					
+		VALUES		(#connect_ip#, 
+					#connect_db_user#,
+					<isEqual property="start" compareValue="Direct"> 
+					DATE_FORMAT(STR_TO_DATE(CONCAT(#datepickerStart#, #ptTimeStart#), '%Y-%m-%d%h:%i %p'), '%Y%m%d%H%i%s'), 
+					</isEqual> 
+					<isEqual property="start" compareValue="ALL"> 
+					#start#,
+					</isEqual> 
+					<isEqual property="end" compareValue="Direct"> 
+					DATE_FORMAT(STR_TO_DATE(CONCAT(#datepickerEnd#, #ptTimeEnd#), '%Y-%m-%d%h:%i %p'), '%Y%m%d%H%i%s'),
+					</isEqual> 
+					<isEqual property="end" compareValue="ALL"> 
+					#end#,
+					</isEqual> 
+					#connect_program_name#);
+
+	</insert>
+	
+	<insert id="insertBehaviorAC" parameterClass="accessControlVO">
+
+		INSERT INTO BEHAVIOR_ACCESS_CONTROL
+					(CONNECT_IP, 
+					CONNECT_DB_USER,
+					SMALL_TIME,
+					SMALL_TIME_COUNT,
+					BIG_TIME,
+					BIG_TIME_COUNT)
+					
+		VALUES		(#connect_ip#, 
+					#connect_db_user#,
+					#small_time#,
+					#small_time_count#,
+					#big_time#,
+					#big_time_count#);
+
+	</insert>
+	
+	<select id="selectKek" resultClass="String">
+	     
+	   	 	 SELECT ENCRYPT_KEY
+           	   FROM KEY_ENCRYPT_KEY
+           	  WHERE STATE is null     
+	    
+	</select>
+	
+	<select id="selectEck" resultClass="String">
+	     
+	   	 	 SELECT ENCRYPT_KEY
+           	   FROM DATA_ENCRYPT_KEY
+           	  WHERE STATE is null     
+	    
+	</select>
+	
+	<select id="selectOldKek" parameterClass="String" resultClass="String">
+	     
+	   	 	 SELECT ENCRYPT_KEY
+           	   FROM KEY_ENCRYPT_KEY
+           	  WHERE STATE  = #state# AND DISCARD_DATE =(SELECT MAX(DISCARD_DATE) AS alias FROM KEY_ENCRYPT_KEY)
+	    
+	</select>
+	
+	<insert id="insertEckRemake" parameterClass="keyVO">
+
+		INSERT INTO DATA_ENCRYPT_KEY
+					(ENCRYPT_KEY, 
+					CREATE_DATE)
+					
+		VALUES		(#encrypt_key#, 
+					DATE_FORMAT(now(), "%Y%m%d%H%i%s"));
+
+	</insert>
+	
+	<update id="discardEck" parameterClass="keyVO">
+
+		 UPDATE DATA_ENCRYPT_KEY
+       		SET	 DISCARD_DATE=DATE_FORMAT(now(), "%Y%m%d%H%i%s"),
+             	 STATE=#state#
+		  WHERE ENCRYPT_KEY  = #encrypt_key#			
+
+	</update>
+	
+	<update id="discardKek" parameterClass="keyVO">
+
+		 UPDATE KEY_ENCRYPT_KEY
+       		SET	 DISCARD_DATE=DATE_FORMAT(now(), "%Y%m%d%H%i%s"),
+             	 STATE=#state#
+		  WHERE ENCRYPT_KEY  = #encrypt_key#			
+
+	</update>
+	
+	<select id="getEckList" parameterClass="String" resultClass="keyVO">
+	       
+	  SELECT ENCRYPT_KEY
+        FROM DATA_ENCRYPT_KEY
+	  WHERE  STATE is null     
+  		
+    </select>
+    
+	<select id="getKekList" parameterClass="String" resultClass="keyVO">
+	       
+	  SELECT ENCRYPT_KEY
+        FROM KEY_ENCRYPT_KEY
+	  WHERE  STATE is null     
+  		
+    </select>
+    
+	 <select id="getPolicyACListCount" resultClass="int">
+        SELECT count(*) cnt
+          FROM POLICY_ACCESS_CONTROL
+        WHERE  DELETE_DATE is null
+    </select>
+	
+	<select id="getPolicyACList" parameterClass="accessControlVO" resultClass="accessControlVO">
+	       
+	  SELECT POLICY_ACCESS_CONTROL_ID,
+	  		 CONNECT_DB_USER,
+	  		 CONNECT_IP,
+	  		 CONNECT_PROGRAM_NAME,
+	  		 DATE_FORMAT(START_TIME, "%Y-%c-%e %r") as START_TIME,
+	  		 DATE_FORMAT(END_TIME, "%Y-%c-%e %r") as END_TIME  
+        FROM POLICY_ACCESS_CONTROL
+	  WHERE  DELETE_DATE is null 
+	ORDER BY POLICY_ACCESS_CONTROL_ID DESC    
+  	   LIMIT #startrow#, #endrow#
+    </select>
+    
+	 <select id="getBehaviorACListCount" resultClass="int">
+        SELECT count(*) cnt
+          FROM BEHAVIOR_ACCESS_CONTROL
+        WHERE  DELETE_DATE is null
+    </select>
+    
+	<select id="getBehaviorACList" parameterClass="accessControlVO" resultClass="accessControlVO">
+	       
+	  SELECT BEHAVIOR_ACCESS_CONTROL_ID,
+	  		 CONNECT_DB_USER,
+	  		 CONNECT_IP,
+	  		 BIG_TIME,
+	  		 BIG_TIME_COUNT,
+	  		 SMALL_TIME,
+	  		 SMALL_TIME_COUNT
+        FROM BEHAVIOR_ACCESS_CONTROL
+	  WHERE  DELETE_DATE is null  
+	ORDER BY BEHAVIOR_ACCESS_CONTROL_ID DESC    
+  	   LIMIT #startrow#, #endrow#   
+  		
+    </select>
+	
+	<update id="policyCheckDelete" parameterClass="accessControlVO">
+
+		 UPDATE POLICY_ACCESS_CONTROL
+       		SET	DELETE_DATE=DATE_FORMAT(now(), "%Y%m%d%H%i%s")
+		  WHERE POLICY_ACCESS_CONTROL_ID  = #policy_access_control_id#			
+
+	</update>
+	
+	<update id="behaviorCheckDelete" parameterClass="accessControlVO">
+
+		 UPDATE BEHAVIOR_ACCESS_CONTROL
+       		SET	DELETE_DATE=DATE_FORMAT(now(), "%Y%m%d%H%i%s")
+		  WHERE BEHAVIOR_ACCESS_CONTROL_ID  = #behavior_access_control_id#			
+
+	</update>
+	
+	<select id="login" parameterClass="adminVO" resultClass="adminVO">
+	       
+	  SELECT ADMIN_ID, 
+	  		 PASSWORD,
+	  		 NAME,
+	  		 PERMISSION 
+        FROM ADMIN
+	  WHERE  ADMIN_ID  = #admin_id#	AND	PASSWORD = #password#
+  		
+    </select>
+    
+	<insert id="insertAdmin" parameterClass="adminVO">
+
+		INSERT INTO ADMIN
+					(ADMIN_ID, 
+					PASSWORD,
+	  				NAME,
+	  				PERMISSION)
+					
+		VALUES		(#admin_id#, 
+					#password#,
+					#name#,
+					#permission#);
+
+	</insert>
+	
+	<select id="selectAdmin" parameterClass="adminVO" resultClass="adminVO">
+	       
+	  SELECT ADMIN_ID, 
+	  		 PASSWORD,
+	  		 NAME,
+	  		 PERMISSION 
+        FROM ADMIN
+	  WHERE  ADMIN_ID  = #admin_id#
+  		
+    </select>
+    
+	<select id="getAdminList" parameterClass="String" resultClass="adminVO">
+	       
+	  SELECT ADMIN_ID, 
+	  		 PASSWORD,
+	  		 NAME,
+	  		 PERMISSION 
+        FROM ADMIN
+  		
+    </select>
+    
+	<update id="updateAdmin" parameterClass="adminVO">
+
+		 UPDATE ADMIN
+       		SET	PASSWORD=#password#,
+	  		 	NAME=#name#
+		  WHERE ADMIN_ID  = #admin_id#			
+
+	</update>
+	
+	<delete id="deleteAdmin" parameterClass="adminVO">
+
+		 DELETE FROM ADMIN
+		  WHERE ADMIN_ID  = #admin_id#			
+
+	</delete>
+	
+	<insert id="insertWorkApproveRequest" parameterClass="workVO">
+
+		INSERT INTO WORK_CONTROL
+					(REQUEST_TIME,
+					REQUEST_ID, 
+					WORK_DB_USER, 
+					WORK_IP,
+					WORK_START_TIME,
+					WORK_END_TIME,
+					APPROVE_ADMIN_ID,
+					APPROVE_TIME)
+		
+			VALUES (DATE_FORMAT(now(), "%Y%m%d%H%i%s"), 
+					#request_id#, 
+					#work_db_user#, 
+					#work_ip#, 
+					<isEqual property="start" compareValue="Direct"> 
+					DATE_FORMAT(STR_TO_DATE(CONCAT(#datepickerStart#, #ptTimeStart#), '%Y-%m-%d%h:%i %p'), '%Y%m%d%H%i%s'),
+					</isEqual> 
+					<isEqual property="start" compareValue="ALL"> 
+					#start#,
+					</isEqual> 
+					<isEqual property="end" compareValue="Direct"> 
+					DATE_FORMAT(STR_TO_DATE(CONCAT(#datepickerEnd#, #ptTimeEnd#), '%Y-%m-%d%h:%i %p'), '%Y%m%d%H%i%s'),
+					</isEqual> 
+					<isEqual property="end" compareValue="ALL"> 
+					#end#,
+					</isEqual> 
+					#approve_admin_id#, 
+					#approve_time#);
+
+	</insert>
+	
+	 <select id="getWorkApproveCancelListCount" parameterClass="workVO" resultClass="int">
+        SELECT count(*) cnt
+          FROM WORK_CONTROL
+         WHERE REQUEST_ID LIKE CONCAT('%',#request_id#,'%') AND APPROVE_TIME IS NULL   
+    </select>
+	
+	<select id="getWorkApproveCancelList" parameterClass="workVO" resultClass="workVO">
+	       
+	  SELECT DATE_FORMAT(REQUEST_TIME, "%Y-%c-%e %r") as REQUEST_TIME,
+	  		 WORK_DB_USER,
+	  		 WORK_IP,
+	  		 DATE_FORMAT(WORK_START_TIME, "%Y-%c-%e %r") as WORK_START_TIME,
+	  		 DATE_FORMAT(WORK_END_TIME, "%Y-%c-%e %r") as WORK_END_TIME,  
+	  		 WORK_CONTROL_ID
+        FROM WORK_CONTROL
+        
+       WHERE REQUEST_ID  LIKE CONCAT('%',#request_id#,'%') AND APPROVE_TIME IS NULL   
+       ORDER BY WORK_CONTROL_ID DESC    
+  	   LIMIT #startrow#, #endrow#  
+  		
+    </select>
+    
+	<delete id="deleteWorkApprove" parameterClass="workVO">
+
+		 DELETE FROM WORK_CONTROL
+		  WHERE WORK_CONTROL_ID  = #work_control_id#		
+
+	</delete>
+    
+	 <select id="getWorkApproveListCount" resultClass="int">
+        SELECT count(*) cnt
+          FROM WORK_CONTROL
+    </select>
+	
+	<select id="getWorkApproveList" parameterClass="workVO" resultClass="workVO">
+	       
+	  SELECT DATE_FORMAT(REQUEST_TIME, "%Y-%c-%e %r") as REQUEST_TIME,
+	  		 REQUEST_ID, 
+	  		 WORK_DB_USER,
+	  		 WORK_IP,
+	  		 DATE_FORMAT(WORK_START_TIME, "%Y-%c-%e %r") as WORK_START_TIME,
+	  		 DATE_FORMAT(WORK_END_TIME, "%Y-%c-%e %r") as WORK_END_TIME,  
+	  		 DATE_FORMAT(APPROVE_TIME, "%Y-%c-%e %r") as APPROVE_TIME,
+	  		 DATE_FORMAT(SYSTEM_APPLY_DATE, "%Y-%c-%e %r") as SYSTEM_APPLY_DATE,
+	  		 WORK_CONTROL_ID
+        FROM WORK_CONTROL
+       ORDER BY WORK_CONTROL_ID DESC    
+  	   LIMIT #startrow#, #endrow#  
+        
+    </select>
+    
+	<select id="getWorkApprove" parameterClass="workVO" resultClass="workVO">
+	       
+	  SELECT REQUEST_ID
+        FROM WORK_CONTROL
+       WHERE REQUEST_ID  = #request_id#	   
+    </select>
+    
+	<update id="updateWorkApproved" parameterClass="workVO">
+
+		 UPDATE WORK_CONTROL
+       		SET	APPROVE_ADMIN_ID=#approve_admin_id#,
+	  		 	APPROVE_TIME=DATE_FORMAT(now(), "%Y%m%d%H%i%s")
+		  WHERE WORK_CONTROL_ID  = #work_control_id#		
+
+	</update>
+	
+	<update id="approveCancle" parameterClass="workVO">
+
+		 UPDATE WORK_CONTROL
+       		SET	APPROVE_ADMIN_ID=#approve_admin_id#,
+	  		 	APPROVE_TIME=#approve_time#
+		  WHERE WORK_CONTROL_ID  = #work_control_id#		
+
+	</update>
+	
+	<select id="getPolicyList" parameterClass="String" resultClass="policyVO">
+	       
+	  SELECT COLUMN_NAME,
+	  		 HASH_CHECK, 
+	  		 HASH_SALT,
+	  		 IV_CHECK,
+	  		 IV_VALUE, 
+	  		 MASK_CHECK,
+	  		 MASK_DIGIT,
+	  		 MASK_VALUE,
+	  		 PARTIAL_ENCRYPT_CHECK,
+	  		 PARTIAL_ENCRYPT_LENGTH,
+	  		 DATE_FORMAT(SYSTEM_APPLY_DATE, "%Y-%c-%e %r") as SYSTEM_APPLY_DATE,
+	  		 TABLE_NAME,
+	  		 USER
+        FROM COLUMN_ENCRYPT_POLICY
+        
+    </select>
+    
+	<select id="getColumnPolicy" parameterClass="policyVO" resultClass="policyVO">
+	       
+	  SELECT COLUMN_NAME,
+	  		 HASH_CHECK, 
+	  		 HASH_SALT,
+	  		 IV_CHECK,
+	  		 IV_VALUE, 
+	  		 MASK_CHECK,
+	  		 MASK_DIGIT,
+	  		 MASK_VALUE,
+	  		 PARTIAL_ENCRYPT_CHECK,
+	  		 PARTIAL_ENCRYPT_LENGTH,
+	  		 DATE_FORMAT(SYSTEM_APPLY_DATE, "%Y-%c-%e %r") as SYSTEM_APPLY_DATE,
+	  		 TABLE_NAME,
+	  		 USER
+        FROM COLUMN_ENCRYPT_POLICY
+       WHERE USER = #user# 
+         AND TABLE_NAME = #table_name#
+         AND COLUMN_NAME = #column_name#
+    </select>
+    
+	<select id="selectColumnPolicy" parameterClass="policyVO" resultClass="policyVO">
+	       
+	  SELECT COLUMN_NAME,
+	  		 HASH_CHECK, 
+	  		 HASH_SALT,
+	  		 IV_CHECK,
+	  		 IV_VALUE, 
+	  		 MASK_CHECK,
+	  		 MASK_DIGIT,
+	  		 MASK_VALUE,
+	  		 PARTIAL_ENCRYPT_CHECK,
+	  		 PARTIAL_ENCRYPT_LENGTH,
+	  		 DATE_FORMAT(SYSTEM_APPLY_DATE, "%Y-%c-%e %r") as SYSTEM_APPLY_DATE,
+	  		 TABLE_NAME,
+	  		 USER
+        FROM COLUMN_ENCRYPT_POLICY
+       WHERE TABLE_NAME = #table_name#
+         AND COLUMN_NAME = #column_name#
+    </select>
+    
+	<select id="getGlobalPolicyList" parameterClass="String" resultClass="policyVO">
+	       
+	  SELECT DB_TYPE,
+	  		 DB_NAME,
+	  		 ALGORITHM,
+	  		 OPERATE_MODE, 
+	  		 DATE_FORMAT(SYSTEM_APPLY_DATE, "%Y-%c-%e %r") as SYSTEM_APPLY_DATE
+        FROM GLOBAL_ENCRYPT_POLICY
+        
+    </select>
+    
+    <delete id="deleteColumnPolicy" parameterClass="policyVO">
+
+		 DELETE FROM COLUMN_ENCRYPT_POLICY
+		  WHERE USER  = #user#	
+		    AND TABLE_NAME = #table_name#	
+		    AND COLUMN_NAME = #column_name#	
+
+	</delete>
+	
+    <delete id="deleteGlobalPolicy" parameterClass="policyVO">
+
+		 DELETE FROM GLOBAL_ENCRYPT_POLICY
+		  WHERE ALGORITHM  = #algorithm#	
+		    AND OPERATE_MODE = #operate_mode#	
+
+	</delete>
+	
+	<update id="updateColumnPolicy" parameterClass="policyVO">
+
+		 UPDATE COLUMN_ENCRYPT_POLICY
+       		SET	HASH_CHECK=#hash_check#,
+				HASH_SALT=#hash_salt#,
+				IV_CHECK=#iv_check#,
+				IV_VALUE=#iv_value#,
+				PARTIAL_ENCRYPT_CHECK=#partial_encrypt_check#,
+				PARTIAL_ENCRYPT_LENGTH=#partial_encrypt_length#,
+				MASK_CHECK=#mask_check#,
+				MASK_DIGIT=#mask_digit#,
+				MASK_VALUE=#mask_value#
+       		
+		  WHERE USER = #user# 
+            AND TABLE_NAME = #table_name#
+            AND COLUMN_NAME = #column_name#	
+
+	</update>
+	
+	<update id="eckBackup" parameterClass="keyVO">
+
+		 UPDATE DATA_ENCRYPT_KEY
+       		SET	BACKUP_DATE=DATE_FORMAT(now(), "%Y%m%d%H%i%s")
+		  WHERE STATE is null     		
+
+	</update>
+	
+	<update id="eckRestore" parameterClass="keyVO">
+
+		 UPDATE DATA_ENCRYPT_KEY
+       		SET ENCRYPT_KEY=#encrypt_key#,
+       			RESTORE_DATE=DATE_FORMAT(now(), "%Y%m%d%H%i%s")
+		  WHERE STATE is null     		
+
+	</update>
+	
+	<update id="kekBackup" parameterClass="keyVO">
+
+		 UPDATE KEY_ENCRYPT_KEY
+       		SET	BACKUP_DATE=DATE_FORMAT(now(), "%Y%m%d%H%i%s")
+		  WHERE STATE is null     		
+
+	</update>
+	
+	<update id="kekRestore" parameterClass="keyVO">
+
+		 UPDATE KEY_ENCRYPT_KEY
+		 	SET ENCRYPT_KEY=#encrypt_key#,
+       			RESTORE_DATE=DATE_FORMAT(now(), "%Y%m%d%H%i%s")
+		  WHERE STATE is null     		
+
+	</update>
+	
+	<insert id="insertKeyCount" parameterClass="int">
+
+		INSERT INTO KEY_COUNT
+					(KEY_COUNT)
+			VALUES (#i#);
+
+	</insert>
+	
+	<update id="updateKeyCount" parameterClass="int">
+
+		 UPDATE KEY_COUNT
+       		SET	KEY_COUNT=#i#
+
+	</update>
+	
+	<select id="selectKeyCount" resultClass="int">
+	     
+	   	 	 SELECT KEY_COUNT
+           	   FROM KEY_COUNT
+	    
+	</select>
+	
+	<select id="selectAccessLog" parameterClass="accessLogVO" resultClass="accessLogVO">
+		SELECT A.*
+		  FROM (
+				SELECT CONNECT_IP
+				     , CONNECT_DB_USER
+				     , ENCRYPTION_YN
+				     , ALLOW_YN
+				     , DENY_REASON
+				     , SUM(COUNT) COUNT
+				  FROM FO4S.ACCESS_LOG
+				 WHERE REGIST_DATE BETWEEN STR_TO_DATE(CONCAT(#datepickerStart#, #ptTimeStart#), '%Y-%m-%d%h:%i %p') AND STR_TO_DATE(CONCAT(#datepickerEnd#, #ptTimeEnd#), '%Y-%m-%d%h:%i %p')
+				 <isNotEmpty property="encryption_yn">
+				   AND ENCRYPTION_YN = #encryption_yn#
+				 </isNotEmpty>
+				 <isNotEmpty property="allow_yn">
+				   AND ALLOW_YN = #allow_yn#
+				 </isNotEmpty>
+		         <isNotEmpty property="connect_ip">
+				   AND CONNECT_IP = #connect_ip#
+		         </isNotEmpty>
+		         <isNotEmpty property="connect_db_user">
+				   AND CONNECT_DB_USER = #connect_db_user#
+		         </isNotEmpty>
+				 GROUP BY CONNECT_IP
+				     , CONNECT_DB_USER
+				     , ENCRYPTION_YN
+				     , ALLOW_YN
+				     , DENY_REASON
+				 ) A
+			 LIMIT 0, #topN#
+    </select>
+</sqlMap>

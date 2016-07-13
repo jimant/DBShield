@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMapConfig PUBLIC "-//iBATIS.com//DTD SQL Map Config 2.0//EN"
+    "http://www.ibatis.com/dtd/sql-map-config-2.dtd">
+
+<sqlMapConfig>
+    <!--cacheModelsEnabled //캐쉬모델 사용여부. 디버깅 시 도움.-->
+    <!--enhancementEnabled //런타임시 바이트 코드 향상.-->
+    <!--lazyLoadingEnabled //레이지(느린)로딩 가능 여부. 디버깅 시 도움.-->
+    <!--maxRequests //한꺼번에 SQL 문을 사용할 수 있는 쓰레드의 수.-->
+    <!--maxSessions //주어진 시간동안 활성될 수 있는 세션의 수.-->
+    <!--maxTransactions //한꺼번에 SqlMapClient.startTransaction()에 들어갈수 있는 쓰레드의 최대갯수.-->
+    <!--useStatementNamespaces //namespace 사용 여부.-->
+
+    <settings
+        cacheModelsEnabled="true"
+        enhancementEnabled="true"
+        lazyLoadingEnabled="true"
+        maxRequests="50"
+        maxSessions="50"
+        maxTransactions="50"
+        useStatementNamespaces="true" /> 
+  
+    <sqlMap resource="kr/co/jimant/home/inquiry/inquiry_sqlmap.xml"/>
+    <sqlMap resource="kr/co/jimant/home/member/member_sqlmap.xml"/>
+    <sqlMap resource="kr/co/jimant/home/notice/notice_sqlmap.xml"/>
+    <sqlMap resource="kr/co/jimant/home/request/request_sqlmap.xml"/>
+    <sqlMap resource="kr/co/jimant/home/forum/forum_sqlmap.xml"/>
+    
+</sqlMapConfig>

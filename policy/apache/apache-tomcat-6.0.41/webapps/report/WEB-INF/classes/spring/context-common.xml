@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans
+        xmlns="http://www.springframework.org/schema/beans"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:p="http://www.springframework.org/schema/p"
+        xmlns:aop="http://www.springframework.org/schema/aop"
+        xmlns:context="http://www.springframework.org/schema/context"
+        xmlns:jee="http://www.springframework.org/schema/jee"
+        xmlns:util="http://www.springframework.org/schema/util"
+        xmlns:tx="http://www.springframework.org/schema/tx"
+        xsi:schemaLocation="
+            http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.0.xsd
+            http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+            http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
+            http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee-3.0.xsd
+            http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd
+            http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.0.xsd">
+    
+    <!--프로퍼티 플레이스 홀더 설정-->
+    <!-- 
+    <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+        <property name="locations">
+            <list>
+                <value>classpath:properties/system.properties</value>
+            </list>
+        </property>
+    </bean>
+     -->
+<!-- 로컬 -->
+    <util:properties id="config" location="classpath:properties/system.properties"/>
+
+<!-- 운영 -->
+<!--     <util:properties id="config" location="classpath:fo4s.properties"/> -->
+       
+    <!--메세지 및 프로퍼티 설정 설정-->
+    <bean id="messageSource" class="org.springframework.context.support.ReloadableResourceBundleMessageSource">
+        <property name="basenames">
+            <list>
+                <value>classpath:properties/application</value>
+                <value>classpath:messages/message</value>
+            </list>
+        </property>
+        <!--cacheSeconds 가 -1 이면 reload 하지 않음-->
+        <!-- <property name="cacheSeconds" value="${message.reload.second}" /> -->
+        <property name="defaultEncoding" value="UTF-8"/>
+    </bean>
+    
+    <!-- <util:properties id="applicationProp" location="classpath:properties/application.properties"/> -->
+    
+    <bean id="leaveaTrace" class="egovframework.rte.fdl.cmmn.trace.LeaveaTrace">
+        <property name="traceHandlerServices">
+            <list>
+                <ref bean="traceHandlerService" />
+            </list>
+        </property>
+    </bean>
+
+    <bean id="traceHandlerService"
+        class="egovframework.rte.fdl.cmmn.trace.manager.DefaultTraceHandleManager">
+        <property name="reqExpMatcher">
+            <ref bean="antPathMater" />
+        </property>
+        <property name="patterns">
+            <list>
+                <value>*</value>
+            </list>
+        </property>
+        <property name="handlers">
+            <list>
+                <ref bean="defaultTraceHandler" />
+            </list>
+        </property>
+    </bean>
+    
+    <bean id="multipartResolver"
+    class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+    <property name="maxUploadSize" value="30720000"/>
+    </bean>
+    
+    <bean id="antPathMater" class="org.springframework.util.AntPathMatcher" />
+
+    <bean id="defaultTraceHandler"
+        class="egovframework.rte.fdl.cmmn.trace.handler.DefaultTraceHandler" />
+
+    <!-- 다운로드  -->
+	<bean id="viewResolver" class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+	
+		<property name="prefix" value="/"/>
+		<property name="suffix" value=".jsp"/>
+		<property name="order" value="1"/>
+	</bean>  
+	
+	<bean class="org.springframework.web.servlet.view.BeanNameViewResolver">
+		      	<property name="order" value="0"/>
+	</bean>
+	<bean id="download" class="kr.co.jimant.report.common.DownloadView"/>
+	
+	<!--  -->
+    
+    
+    <context:component-scan annotation-config="true" base-package="kr.co.jimant" />
+    
+    <tx:annotation-driven />
+    
+</beans>
