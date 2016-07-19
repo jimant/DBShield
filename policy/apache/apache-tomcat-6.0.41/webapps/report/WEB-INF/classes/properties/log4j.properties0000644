@@ -1,0 +1,57 @@
+log4j.rootLogger=DEBUG, stdout
+#, rolling
+#log4j.rootLogger=DEBUG, stdout, stdoutLogFile
+
+log4j.appender.stdout=org.apache.log4j.ConsoleAppender
+log4j.appender.stdout.layout=org.apache.log4j.PatternLayout
+log4j.appender.stdout.layout.ConversionPattern=%d{yyyy-MM-dd HH:mm:ss} [%-5p] %F::%M:%L - %m%n
+
+log4j.appender.rolling=org.apache.log4j.DailyRollingFileAppender
+log4j.appender.rolling.File=c:/vcloud/admin/log/output.log
+log4j.appender.rolling.Append=true
+log4j.appender.rolling.DatePattern='.'yyyy-MM-dd
+log4j.appender.rolling.layout=org.apache.log4j.PatternLayout
+log4j.appender.rolling.layout.ConversionPattern=%d{yyyy-MM-dd HH:mm:ss} [%-5p] %F::%M:%L - %m%n
+
+log4j.logger.kr.co.jimant = DEBUG
+
+# spring logging
+log4j.logger.org.springframework=DEBUG
+log4j.logger.org.springframework.core=DEBUG
+log4j.logger.org.springframework.context=DEBUG
+log4j.logger.org.springframework.transaction=DEBUG
+log4j.logger.org.springframework.beans=DEBUG
+log4j.logger.org.springframework.aop=DEBUG
+log4j.logger.org.springframework.web=DEBUG
+log4j.logger.org.springframework.ui=DEBUG
+log4j.logger.org.springframework.security=DEBUG
+
+# apache logging
+#log4j.logger.org.apache=ERROR
+
+#log4j.logger.org.apache.cxf=DEBUG
+
+# freemarker logging
+#log4j.logger.freemarker = ERROR
+
+# OS cache logging
+#log4j.logger.com.opensymphony.oscache = ERROR
+#log4j.logger.com.opensymphony.oscache.web = DEBUG
+#log4j.logger.com.opensymphony.oscache.plugins = DEBUG
+
+# iBatis logging
+log4j.logger.com.ibatis.sqlmap.engine.impl.SqlMapClientDelegate=DEBUG
+log4j.logger.java.sql.Connection=DEBUG
+log4j.logger.java.sql.Statement=DEBUG
+log4j.logger.java.sql.PreparedStatement=DEBUG
+log4j.logger.java.sql.ResultSet=DEBUG
+
+# log4j.appender.stdoutLogFile=org.apache.log4j.RollingFileAppender
+# log4j.appender.stdoutLogFile.File=c:/admin/system_out.log
+# log4j.appender.stdoutLogFile.MaxFileSize=512KB
+
+## Keep three backup files.
+# log4j.appender.stdoutLogFile.MaxBackupIndex=3
+## Pattern to output: date priority [category] - message
+# log4j.appender.stdoutLogFile.layout=org.apache.log4j.PatternLayout
+# log4j.appender.stdoutLogFile.layout.ConversionPattern=%d %p [%c] - %m%n

@@ -1,11 +1,3 @@
-#
-  #
-  # Copyright (C) 2011 Seungwoo Baek, Jimant technology,Inc.
-  #
-  # Licensed under the LGPL v3 see the file LICENSE in base directory.
-  #
-#
-
 #!/bin/bash
 # cut 명령에서 -d 옵션은 필드간 구분자를 지정할 수 있다.
 # 여기서 " " 공백을 지정했다.

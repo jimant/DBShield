@@ -193,8 +193,6 @@ PHP_FUNCTION(encryptionPHP_Mysql)
 
         char* result = NULL;
         int result_len = 0;
-	// fo4s modified a line below
-        //bool isSuccess = true;
         bool isSuccess = false;
 
         char* enc = encryption(ip, user, threadId, NULL, data, dbName, tableName, columnName, &isSuccess);
